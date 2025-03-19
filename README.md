@@ -52,7 +52,7 @@ docker build -t php-mcp-server .
 2. 运行容器
 
 ```bash
-docker run -it --rm php-mcp-server
+docker run -i --rm php-mcp-server
 ```
 
 ## 项目结构
