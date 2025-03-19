@@ -84,6 +84,7 @@ class WeidianBarcodeServerCommand extends Command
                     isError: true
                 );
             }
+            $barcode = trim($barcode);
 
             // 获取环境变量中的 cookies
             $cookies = getenv('WEIDIAN_COOKIES');
