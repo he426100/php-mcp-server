@@ -1,0 +1,25 @@
+#!/usr/bin/env php
+<?php
+
+// 启用错误报告
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+ini_set('log_errors', 1);
+ini_set('memory_limit', '1G');
+error_reporting(E_ALL);
+date_default_timezone_set('PRC');
+
+! defined('BASE_PATH') && define('BASE_PATH', dirname(__DIR__));
+require BASE_PATH . '/vendor/autoload.php';
+
+use Symfony\Component\Console\Application;
+use He426100\McpServer\Command\TestServerCommand;
+
+ini_set('error_log', BASE_PATH . '/runtime/php_errors.log');
+
+(function () {
+    $application = new Application('MCP SDK Examples', '1.0.0');
+    $application->add(new TestServerCommand());
+    $application->setDefaultCommand('mcp:test-server');
+    $application->run();
+})();

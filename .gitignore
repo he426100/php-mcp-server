@@ -1,0 +1,7 @@
+# Composer dependencies
+/vendor/
+composer.lock
+.history/
+runtime/
+.env
+.cursor/
