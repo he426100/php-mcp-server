@@ -37,8 +37,9 @@ class TestServerCommand extends Command
     // 配置命令
     protected function configure(): void
     {
-        $this
-            ->setName('mcp:test-server')
+        $this->setName('mcp:test-server')
+            ->addOption('port', null, InputOption::VALUE_OPTIONAL, 'Port to listen on for SSE', 8000)
+            ->addOption('transport', null, InputOption::VALUE_OPTIONAL, 'Transport type', 'stdin')
             ->setDescription('运行MCP测试服务器')
             ->setHelp('此命令启动一个MCP测试服务器');
     }
@@ -46,6 +47,13 @@ class TestServerCommand extends Command
     // 执行命令
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
+        $transport = $input->getOption('transport');
+        if (!in_array($transport, ['stdio', 'sse'])) {
+            throw new \Exception('Unsupported transport: ' . $transport);
+        }
+
+        $port = $input->getOption('port');
+
         // 创建日志记录器
         $logger = LoggerService::createLogger(
             'php-mcp-server',
@@ -190,7 +198,7 @@ class TestServerCommand extends Command
 
         // 创建初始化选项并运行服务器
         $initOptions = $server->createInitializationOptions();
-        $runner = new ServerRunner($logger);
+        $runner = new ServerRunner($logger, $transport, '0.0.0.0', $port);
 
         try {
             $runner->run($server, $initOptions);
