@@ -2,7 +2,7 @@
     "name": "he426100/php-mcp-server",
     "type": "project",
     "require": {
-        "he426100/mcp-sdk-php": "dev-main"
+        "he426100/mcp-sdk-php": "dev-swow"
     },
     "autoload": {
         "psr-4": {

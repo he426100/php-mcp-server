@@ -153,10 +153,10 @@ class WeidianBarcodeServerCommand extends Command
 
         // 创建初始化选项并运行服务器
         $initOptions = $server->createInitializationOptions();
-        $runner = new ServerRunner($server, $initOptions, $logger);
+        $runner = new ServerRunner($logger);
 
         try {
-            $runner->run();
+            $runner->run($server, $initOptions);
             return Command::SUCCESS;
         } catch (\Throwable $e) {
             $logger->error("服务器运行失败", ['exception' => $e]);
