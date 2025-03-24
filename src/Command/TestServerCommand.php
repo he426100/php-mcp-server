@@ -39,7 +39,7 @@ class TestServerCommand extends Command
     {
         $this->setName('mcp:test-server')
             ->addOption('port', null, InputOption::VALUE_OPTIONAL, 'Port to listen on for SSE', 8000)
-            ->addOption('transport', null, InputOption::VALUE_OPTIONAL, 'Transport type', 'stdin')
+            ->addOption('transport', null, InputOption::VALUE_OPTIONAL, 'Transport type', 'stdio')
             ->setDescription('运行MCP测试服务器')
             ->setHelp('此命令启动一个MCP测试服务器');
     }

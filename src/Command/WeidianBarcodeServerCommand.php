@@ -25,7 +25,7 @@ class WeidianBarcodeServerCommand extends Command
         $this
             ->setName('weidian:barcode-query')
             ->addOption('port', null, InputOption::VALUE_OPTIONAL, 'Port to listen on for SSE', 8000)
-            ->addOption('transport', null, InputOption::VALUE_OPTIONAL, 'Transport type', 'stdin')
+            ->addOption('transport', null, InputOption::VALUE_OPTIONAL, 'Transport type', 'stdio')
             ->setDescription('运行微店条码查询MCP服务器')
             ->setHelp('此命令启动一个微店条码查询MCP服务器');
     }
