@@ -2,9 +2,6 @@
 
 namespace He426100\McpServer\Service;
 
-use He426100\McpServer\Annotation\Tool;
-use He426100\McpServer\Annotation\Prompt;
-use He426100\McpServer\Annotation\Resource;
 use Mcp\Server\Server;
 use Mcp\Types\Tool as McpTool;
 use Mcp\Types\Prompt as McpPrompt;
@@ -25,8 +22,11 @@ use Mcp\Types\Role;
 use ReflectionClass;
 use ReflectionMethod;
 use ReflectionParameter;
+use He426100\McpServer\Annotation\Tool;
+use He426100\McpServer\Annotation\Prompt;
+use He426100\McpServer\Annotation\Resource;
 
-abstract class AbstractMcpService
+class McpServiceRegistrar
 {
     /**
      * 缓存已处理过的反射方法
@@ -38,21 +38,22 @@ abstract class AbstractMcpService
      * 将服务处理器注册到MCP服务器
      *
      * @param Server $server MCP服务器实例
+     * @param object $service 服务实例
      * @return void
      */
-    public function registerHandlers(Server $server): void
+    public function registerService(Server $server, object $service): void
     {
-        $reflectionClass = new ReflectionClass($this);
-        
+        $reflectionClass = new ReflectionClass($service);
+
         // 处理各类注解
         [$tools, $toolMethodMap] = $this->processToolAnnotations($reflectionClass);
         [$prompts, $promptMethodMap] = $this->processPromptAnnotations($reflectionClass);
         [$resources, $resourceUriMap] = $this->processResourceAnnotations($reflectionClass);
-        
+
         // 注册各类处理器
-        $this->registerToolHandlers($server, $tools, $toolMethodMap, $reflectionClass);
-        $this->registerPromptHandlers($server, $prompts, $promptMethodMap, $reflectionClass);
-        $this->registerResourceHandlers($server, $resources, $resourceUriMap, $reflectionClass);
+        $this->registerToolHandlers($server, $tools, $toolMethodMap, $reflectionClass, $service);
+        $this->registerPromptHandlers($server, $prompts, $promptMethodMap, $reflectionClass, $service);
+        $this->registerResourceHandlers($server, $resources, $resourceUriMap, $reflectionClass, $service);
     }
 
     /**
@@ -65,7 +66,7 @@ abstract class AbstractMcpService
     {
         $tools = [];
         $toolMethodMap = [];
-        
+
         foreach ($reflectionClass->getMethods(ReflectionMethod::IS_PUBLIC) as $method) {
             $toolAttributes = $method->getAttributes(Tool::class);
             foreach ($toolAttributes as $attribute) {
@@ -74,7 +75,7 @@ abstract class AbstractMcpService
                 $toolMethodMap[$tool->getName()] = $method->getName();
             }
         }
-        
+
         return [$tools, $toolMethodMap];
     }
 
@@ -88,7 +89,7 @@ abstract class AbstractMcpService
     {
         $prompts = [];
         $promptMethodMap = [];
-        
+
         foreach ($reflectionClass->getMethods(ReflectionMethod::IS_PUBLIC) as $method) {
             $promptAttributes = $method->getAttributes(Prompt::class);
             foreach ($promptAttributes as $attribute) {
@@ -97,7 +98,7 @@ abstract class AbstractMcpService
                 $promptMethodMap[$prompt->getName()] = $method->getName();
             }
         }
-        
+
         return [$prompts, $promptMethodMap];
     }
 
@@ -111,7 +112,7 @@ abstract class AbstractMcpService
     {
         $resources = [];
         $resourceUriMap = [];
-        
+
         foreach ($reflectionClass->getMethods(ReflectionMethod::IS_PUBLIC) as $method) {
             $resourceAttributes = $method->getAttributes(Resource::class);
             foreach ($resourceAttributes as $attribute) {
@@ -120,7 +121,7 @@ abstract class AbstractMcpService
                 $resourceUriMap[$resource->getUri()] = $method->getName();
             }
         }
-        
+
         return [$resources, $resourceUriMap];
     }
 
@@ -131,25 +132,27 @@ abstract class AbstractMcpService
      * @param array $tools 工具定义数组
      * @param array $toolMethodMap 工具名称到方法名的映射
      * @param ReflectionClass $reflectionClass 反射类
+     * @param object $service 服务实例
      * @return void
      */
     protected function registerToolHandlers(
-        Server $server, 
-        array $tools, 
-        array $toolMethodMap, 
-        ReflectionClass $reflectionClass
+        Server $server,
+        array $tools,
+        array $toolMethodMap,
+        ReflectionClass $reflectionClass,
+        object $service
     ): void {
         if (empty($tools)) {
             return;
         }
-        
+
         // 注册工具列表处理器
         $server->registerHandler('tools/list', function () use ($tools) {
             return new ListToolsResult($tools);
         });
 
         // 注册工具调用处理器
-        $server->registerHandler('tools/call', function ($params) use ($tools, $reflectionClass, $toolMethodMap) {
+        $server->registerHandler('tools/call', function ($params) use ($tools, $reflectionClass, $toolMethodMap, $service) {
             $name = $params->name;
             $arguments = [];
             if (isset($params->arguments)) {
@@ -164,11 +167,11 @@ abstract class AbstractMcpService
             }
 
             $methodName = $toolMethodMap[$name];
-            
+
             try {
                 $method = $this->getCachedMethod($reflectionClass, $methodName);
-                $result = $this->executeMethodSafely($method, $arguments);
-                
+                $result = $this->executeMethodSafely($method, $arguments, $service);
+
                 return new CallToolResult(
                     content: [new TextContent(text: (string)$result)]
                 );
@@ -188,25 +191,27 @@ abstract class AbstractMcpService
      * @param array $prompts 提示模板定义数组
      * @param array $promptMethodMap 提示模板名称到方法名的映射
      * @param ReflectionClass $reflectionClass 反射类
+     * @param object $service 服务实例
      * @return void
      */
     protected function registerPromptHandlers(
-        Server $server, 
-        array $prompts, 
-        array $promptMethodMap, 
-        ReflectionClass $reflectionClass
+        Server $server,
+        array $prompts,
+        array $promptMethodMap,
+        ReflectionClass $reflectionClass,
+        object $service
     ): void {
         if (empty($prompts)) {
             return;
         }
-        
+
         // 注册提示模板列表处理器
         $server->registerHandler('prompts/list', function () use ($prompts) {
             return new ListPromptsResult($prompts);
         });
 
         // 注册提示模板获取处理器
-        $server->registerHandler('prompts/get', function ($params) use ($prompts, $reflectionClass, $promptMethodMap) {
+        $server->registerHandler('prompts/get', function ($params) use ($prompts, $reflectionClass, $promptMethodMap, $service) {
             $name = $params->name;
             $arguments = [];
             if (isset($params->arguments)) {
@@ -218,10 +223,10 @@ abstract class AbstractMcpService
             }
 
             $methodName = $promptMethodMap[$name];
-            
+
             try {
                 $method = $this->getCachedMethod($reflectionClass, $methodName);
-                $result = $this->executeMethodSafely($method, $arguments);
+                $result = $this->executeMethodSafely($method, $arguments, $service);
 
                 // 找到对应的prompt定义以获取描述
                 $promptDescription = '';
@@ -254,25 +259,27 @@ abstract class AbstractMcpService
      * @param array $resources 资源定义数组
      * @param array $resourceUriMap 资源URI到方法名的映射
      * @param ReflectionClass $reflectionClass 反射类
+     * @param object $service 服务实例
      * @return void
      */
     protected function registerResourceHandlers(
-        Server $server, 
-        array $resources, 
-        array $resourceUriMap, 
-        ReflectionClass $reflectionClass
+        Server $server,
+        array $resources,
+        array $resourceUriMap,
+        ReflectionClass $reflectionClass,
+        object $service
     ): void {
         if (empty($resources)) {
             return;
         }
-        
+
         // 注册资源列表处理器
         $server->registerHandler('resources/list', function () use ($resources) {
             return new ListResourcesResult($resources);
         });
 
         // 注册资源读取处理器
-        $server->registerHandler('resources/read', function ($params) use ($resources, $reflectionClass, $resourceUriMap) {
+        $server->registerHandler('resources/read', function ($params) use ($resources, $reflectionClass, $resourceUriMap, $service) {
             $uri = $params->uri;
 
             if (!isset($resourceUriMap[$uri])) {
@@ -280,7 +287,7 @@ abstract class AbstractMcpService
             }
 
             $methodName = $resourceUriMap[$uri];
-            
+
             // 找到对应的resource定义以获取mimeType
             $mimeType = 'text/plain';
             foreach ($resources as $resource) {
@@ -292,8 +299,8 @@ abstract class AbstractMcpService
 
             try {
                 $method = $this->getCachedMethod($reflectionClass, $methodName);
-                $content = $this->executeMethodSafely($method, []);
-                
+                $content = $this->executeMethodSafely($method, [], $service);
+
                 return new ReadResourceResult(
                     contents: [
                         $this->processResourceContent((string)$content, $mimeType, $uri)
@@ -329,13 +336,14 @@ abstract class AbstractMcpService
      *
      * @param ReflectionMethod $method 要执行的方法
      * @param array $arguments 参数数组
+     * @param object $service 服务实例
      * @return mixed 方法返回值
      * @throws \RuntimeException 执行异常时
      */
-    protected function executeMethodSafely(ReflectionMethod $method, array $arguments)
+    protected function executeMethodSafely(ReflectionMethod $method, array $arguments, object $service)
     {
         try {
-            return $method->invoke($this, ...$this->prepareArguments($method, $arguments));
+            return $method->invoke($service, ...$this->prepareArguments($method, $arguments));
         } catch (\Throwable $e) {
             // 记录错误
             error_log("Error executing method {$method->getName()}: " . $e->getMessage());
