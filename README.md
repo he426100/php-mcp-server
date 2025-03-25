@@ -42,7 +42,7 @@ php bin/console mcp:test-server
 用于定义工具类处理器：
 
 ```php
-use He426100\McpServer\Annotation\Tool;
+use Mcp\Annotation\Tool;
 
 class MyService {
     #[Tool(
@@ -73,7 +73,7 @@ class MyService {
 用于定义提示模板处理器：
 
 ```php
-use He426100\McpServer\Annotation\Prompt;
+use Mcp\Annotation\Prompt;
 
 class MyService {
     #[Prompt(
@@ -98,7 +98,7 @@ class MyService {
 用于定义资源处理器：
 
 ```php
-use He426100\McpServer\Annotation\Resource;
+use Mcp\Annotation\Resource;
 
 class MyService {
     #[Resource(
@@ -121,9 +121,9 @@ class MyService {
 ```php
 namespace Your\Namespace;
 
-use He426100\McpServer\Annotation\Tool;
-use He426100\McpServer\Annotation\Prompt;
-use He426100\McpServer\Annotation\Resource;
+use Mcp\Annotation\Tool;
+use Mcp\Annotation\Prompt;
+use Mcp\Annotation\Resource;
 
 class CustomService 
 {

@@ -2,9 +2,9 @@
 
 namespace He426100\McpServer\Service;
 
-use He426100\McpServer\Annotation\Tool;
-use He426100\McpServer\Annotation\Prompt;
-use He426100\McpServer\Annotation\Resource;
+use Mcp\Annotation\Tool;
+use Mcp\Annotation\Prompt;
+use Mcp\Annotation\Resource;
 
 class TestService
 {

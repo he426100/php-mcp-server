@@ -2,7 +2,7 @@
 
 namespace He426100\McpServer\Service;
 
-use He426100\McpServer\Annotation\Tool;
+use Mcp\Annotation\Tool;
 
 class WeidianBarcodeService
 {
