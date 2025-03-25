@@ -7,40 +7,46 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use He426100\McpServer\Service\LoggerService;
-use He426100\McpServer\Service\TestService;
-
 use Mcp\Server\Server;
 use Mcp\Server\ServerRunner;
 
-class TestServerCommand extends AbstractMcpServerCommand
+abstract class AbstractMcpServerCommand extends Command
 {
-    // 配置命令
+    /**
+     * 服务名称
+     * 
+     * @return string
+     */
+    abstract protected function getServerName(): string;
+    
+    /**
+     * 日志文件路径
+     * 
+     * @return string
+     */
+    abstract protected function getLogFilePath(): string;
+    
+    /**
+     * 创建并配置服务
+     * 
+     * @param Server $server
+     * @return void
+     */
+    abstract protected function configureService(Server $server): void;
+
+    /**
+     * 配置命令
+     */
     protected function configure(): void
     {
-        parent::configure();
-        $this->setName('mcp:test-server')
-            ->setDescription('运行MCP测试服务器')
-            ->setHelp('此命令启动一个MCP测试服务器');
+        $this
+            ->addOption('port', null, InputOption::VALUE_OPTIONAL, 'Port to listen on for SSE', 8000)
+            ->addOption('transport', null, InputOption::VALUE_OPTIONAL, 'Transport type', 'stdio');
     }
 
-    protected function getServerName(): string
-    {
-        return 'mcp-test-server';
-    }
-
-    protected function getLogFilePath(): string
-    {
-        return BASE_PATH . '/runtime/server_log.txt';
-    }
-
-    protected function configureService(Server $server): void
-    {
-        // 创建测试服务并注册处理器
-        $testService = new TestService();
-        $testService->registerHandlers($server);
-    }
-
-    // 执行命令
+    /**
+     * 执行命令
+     */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $transport = $input->getOption('transport');
@@ -75,4 +81,4 @@ class TestServerCommand extends AbstractMcpServerCommand
             return Command::FAILURE;
         }
     }
-}
+} 
