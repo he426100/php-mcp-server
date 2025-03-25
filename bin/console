@@ -15,6 +15,7 @@ require BASE_PATH . '/vendor/autoload.php';
 use Symfony\Component\Console\Application;
 use He426100\McpServer\Command\TestServerCommand;
 use He426100\McpServer\Command\WeidianBarcodeServerCommand;
+use He426100\McpServer\Command\MySqlServerCommand;
 
 ini_set('error_log', BASE_PATH . '/runtime/php_errors.log');
 
@@ -22,5 +23,6 @@ ini_set('error_log', BASE_PATH . '/runtime/php_errors.log');
     $application = new Application('MCP SDK Examples', '1.0.0');
     $application->add(new TestServerCommand());
     $application->add(new WeidianBarcodeServerCommand());
+    $application->add(new MySqlServerCommand());
     $application->run();
 })();
