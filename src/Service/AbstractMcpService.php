@@ -42,6 +42,11 @@ abstract class AbstractMcpService
         $tools = [];
         $prompts = [];
         $resources = [];
+        
+        // 创建名称到方法名的映射
+        $toolMethodMap = [];
+        $promptMethodMap = [];
+        $resourceUriMap = [];
 
         foreach ($methods as $method) {
             // 处理Tool注解
@@ -49,6 +54,7 @@ abstract class AbstractMcpService
             foreach ($toolAttributes as $attribute) {
                 $tool = $attribute->newInstance();
                 $tools[] = $this->createToolDefinition($tool, $method);
+                $toolMethodMap[$tool->getName()] = $method->getName();
             }
 
             // 处理Prompt注解
@@ -56,6 +62,7 @@ abstract class AbstractMcpService
             foreach ($promptAttributes as $attribute) {
                 $prompt = $attribute->newInstance();
                 $prompts[] = $this->createPromptDefinition($prompt, $method);
+                $promptMethodMap[$prompt->getName()] = $method->getName();
             }
 
             // 处理Resource注解
@@ -63,6 +70,7 @@ abstract class AbstractMcpService
             foreach ($resourceAttributes as $attribute) {
                 $resource = $attribute->newInstance();
                 $resources[] = $this->createResourceDefinition($resource, $method);
+                $resourceUriMap[$resource->getUri()] = $method->getName();
             }
         }
 
@@ -73,28 +81,28 @@ abstract class AbstractMcpService
             });
 
             // 注册工具调用处理器
-            $server->registerHandler('tools/call', function($params) use ($tools, $reflectionClass) {
+            $server->registerHandler('tools/call', function($params) use ($tools, $reflectionClass, $toolMethodMap) {
                 $name = $params->name;
                 $arguments = $params->arguments ?? [];
 
-                foreach ($tools as $tool) {
-                    if ($tool->name === $name) {
-                        $method = $reflectionClass->getMethod($tool->name);
-                        try {
-                            $result = $method->invoke($this, ...$this->prepareArguments($method, $arguments));
-                            return new CallToolResult(
-                                content: [new TextContent(text: (string)$result)]
-                            );
-                        } catch (\Throwable $e) {
-                            return new CallToolResult(
-                                content: [new TextContent(text: "Error: " . $e->getMessage())],
-                                isError: true
-                            );
-                        }
-                    }
+                if (!isset($toolMethodMap[$name])) {
+                    throw new \InvalidArgumentException("Unknown tool: {$name}");
                 }
 
-                throw new \InvalidArgumentException("Unknown tool: {$name}");
+                $methodName = $toolMethodMap[$name];
+                $method = $reflectionClass->getMethod($methodName);
+                
+                try {
+                    $result = $method->invoke($this, ...$this->prepareArguments($method, $arguments));
+                    return new CallToolResult(
+                        content: [new TextContent(text: (string)$result)]
+                    );
+                } catch (\Throwable $e) {
+                    return new CallToolResult(
+                        content: [new TextContent(text: "Error: " . $e->getMessage())],
+                        isError: true
+                    );
+                }
             });
         }
 
@@ -105,31 +113,41 @@ abstract class AbstractMcpService
             });
 
             // 注册提示模板获取处理器
-            $server->registerHandler('prompts/get', function($params) use ($prompts, $reflectionClass) {
+            $server->registerHandler('prompts/get', function($params) use ($prompts, $reflectionClass, $promptMethodMap) {
                 $name = $params->name;
                 $arguments = $params->arguments ?? new \stdClass();
 
-                foreach ($prompts as $prompt) {
-                    if ($prompt->name === $name) {
-                        $method = $reflectionClass->getMethod($prompt->name);
-                        try {
-                            $result = $method->invoke($this, ...$this->prepareArguments($method, (array)$arguments));
-                            return new GetPromptResult(
-                                messages: [
-                                    new PromptMessage(
-                                        role: Role::ASSISTANT,
-                                        content: new TextContent(text: (string)$result)
-                                    )
-                                ],
-                                description: $prompt->description
-                            );
-                        } catch (\Throwable $e) {
-                            throw new \InvalidArgumentException("Error processing prompt: " . $e->getMessage());
-                        }
-                    }
+                if (!isset($promptMethodMap[$name])) {
+                    throw new \InvalidArgumentException("Unknown prompt: {$name}");
                 }
 
-                throw new \InvalidArgumentException("Unknown prompt: {$name}");
+                $methodName = $promptMethodMap[$name];
+                $method = $reflectionClass->getMethod($methodName);
+                
+                try {
+                    $result = $method->invoke($this, ...$this->prepareArguments($method, (array)$arguments));
+                    
+                    // 找到对应的prompt定义以获取描述
+                    $promptDescription = '';
+                    foreach ($prompts as $prompt) {
+                        if ($prompt->name === $name) {
+                            $promptDescription = $prompt->description;
+                            break;
+                        }
+                    }
+                    
+                    return new GetPromptResult(
+                        messages: [
+                            new PromptMessage(
+                                role: Role::ASSISTANT,
+                                content: new TextContent(text: (string)$result)
+                            )
+                        ],
+                        description: $promptDescription
+                    );
+                } catch (\Throwable $e) {
+                    throw new \InvalidArgumentException("Error processing prompt: " . $e->getMessage());
+                }
             });
         }
 
@@ -140,52 +158,41 @@ abstract class AbstractMcpService
             });
 
             // 注册资源读取处理器
-            $server->registerHandler('resources/read', function($params) use ($resources, $reflectionClass) {
+            $server->registerHandler('resources/read', function($params) use ($resources, $reflectionClass, $resourceUriMap) {
                 $uri = $params->uri;
 
-                foreach ($resources as $resource) {
-                    if ($resource->uri === $uri) {
-                        $method = $reflectionClass->getMethod($resource->name);
-                        try {
-                            $content = $method->invoke($this);
-                            return new ReadResourceResult(
-                                contents: [
-                                    new TextResourceContents(
-                                        uri: $uri,
-                                        text: (string)$content,
-                                        mimeType: $resource->mimeType
-                                    )
-                                ]
-                            );
-                        } catch (\Throwable $e) {
-                            throw new \InvalidArgumentException("Error reading resource: " . $e->getMessage());
-                        }
-                    }
+                if (!isset($resourceUriMap[$uri])) {
+                    throw new \InvalidArgumentException("Unknown resource: {$uri}");
                 }
 
-                throw new \InvalidArgumentException("Unknown resource: {$uri}");
+                $methodName = $resourceUriMap[$uri];
+                $method = $reflectionClass->getMethod($methodName);
+                
+                // 找到对应的resource定义以获取mimeType
+                $mimeType = 'text/plain';
+                foreach ($resources as $resource) {
+                    if ($resource->uri === $uri) {
+                        $mimeType = $resource->mimeType;
+                        break;
+                    }
+                }
+                
+                try {
+                    $content = $method->invoke($this);
+                    return new ReadResourceResult(
+                        contents: [
+                            new TextResourceContents(
+                                uri: $uri,
+                                text: (string)$content,
+                                mimeType: $mimeType
+                            )
+                        ]
+                    );
+                } catch (\Throwable $e) {
+                    throw new \InvalidArgumentException("Error reading resource: " . $e->getMessage());
+                }
             });
         }
-    }
-
-    private function createToolDefinition(Tool $tool, ReflectionMethod $method): McpTool
-    {
-        $parameters = $tool->getParameters();
-        if (empty($parameters)) {
-            $parameters = $this->extractParametersFromMethod($method);
-        }
-
-        $properties = ToolInputProperties::fromArray($parameters);
-        $required = array_keys(array_filter($parameters, fn($p) => ($p['required'] ?? false)));
-
-        return new McpTool(
-            name: $tool->getName(),
-            description: $tool->getDescription(),
-            inputSchema: new ToolInputSchema(
-                properties: $properties,
-                required: $required
-            ),
-        );
     }
 
     private function extractParametersFromMethod(ReflectionMethod $method): array
@@ -247,6 +254,26 @@ abstract class AbstractMcpService
         };
     }
 
+    private function createToolDefinition(Tool $tool, ReflectionMethod $method): McpTool
+    {
+        $parameters = $tool->getParameters();
+        if (empty($parameters)) {
+            $parameters = $this->extractParametersFromMethod($method);
+        }
+
+        $properties = ToolInputProperties::fromArray($parameters);
+        $required = array_keys(array_filter($parameters, fn($p) => ($p['required'] ?? false)));
+
+        return new McpTool(
+            name: $tool->getName(),
+            description: $tool->getDescription(),
+            inputSchema: new ToolInputSchema(
+                properties: $properties,
+                required: $required
+            ),
+        );
+    }
+    
     private function createPromptDefinition(Prompt $prompt, ReflectionMethod $method): McpPrompt
     {
         $arguments = $prompt->getArguments();
@@ -279,4 +306,4 @@ abstract class AbstractMcpService
             mimeType: $resource->getMimeType(),
         );
     }
-} 
+}
