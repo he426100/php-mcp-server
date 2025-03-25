@@ -1,14 +1,13 @@
 # PHP MCP Server
 
-这是一个基于 PHP 实现的 MCP (Model Control Protocol) 服务器示例项目。
+这是一个基于 PHP 实现的 MCP (Model Control Protocol) 服务器框架，支持通过注解优雅地定义 MCP 服务。
 
 ## 项目概述
 
-本项目提供了一个完整的 MCP 服务器实现，包含以下功能：
+本项目提供了一个完整的 MCP 服务器实现，特色功能：
 
-- Prompt 处理器
-- Tool 处理器
-- Resource 处理器
+- 基于注解的 MCP 服务定义
+- 支持 Tool、Prompt、Resource 三种处理器
 - 完整的日志系统
 - Docker 支持
 
@@ -18,123 +17,202 @@
 - Composer
 - Docker (可选)
 
-## 安装
+## 快速开始
 
-### 方式一：本地安装
-
-1. 克隆项目
+### 安装
 
 ```bash
 git clone https://github.com/he426100/php-mcp-server
 cd php-mcp-server
-```
-
-2. 安装依赖
-
-```bash
 composer install
 ```
 
-3. 运行服务器
+### 运行示例服务器
 
 ```bash
-php bin/console
+php bin/console mcp:test-server
 ```
 
-### 方式二：Docker 安装
+## 注解使用指南
 
-1. 构建镜像
+本框架提供三种核心注解用于定义 MCP 服务：
+
+### 1. Tool 注解
+
+用于定义工具类处理器：
+
+```php
+use He426100\McpServer\Annotation\Tool;
+
+class MyService {
+    #[Tool(
+        name: 'calculate-sum',
+        description: '计算两个数的和',
+        parameters: [
+            'num1' => [
+                'type' => 'number',
+                'description' => '第一个数字',
+                'required' => true
+            ],
+            'num2' => [
+                'type' => 'number',
+                'description' => '第二个数字',
+                'required' => true
+            ]
+        ]
+    )]
+    public function sum(int $num1, int $num2): int 
+    {
+        return $num1 + $num2;
+    }
+}
+```
+
+### 2. Prompt 注解
+
+用于定义提示模板处理器：
+
+```php
+use He426100\McpServer\Annotation\Prompt;
+
+class MyService {
+    #[Prompt(
+        name: 'greeting',
+        description: '生成问候语',
+        arguments: [
+            'name' => [
+                'description' => '要问候的人名',
+                'required' => true
+            ]
+        ]
+    )]
+    public function greeting(string $name): string 
+    {
+        return "Hello, {$name}!";
+    }
+}
+```
+
+### 3. Resource 注解
+
+用于定义资源处理器：
+
+```php
+use He426100\McpServer\Annotation\Resource;
+
+class MyService {
+    #[Resource(
+        uri: 'example://greeting',
+        name: 'Greeting Text',
+        description: '问候语资源',
+        mimeType: 'text/plain'
+    )]
+    public function getGreeting(): string 
+    {
+        return "Hello from MCP server!";
+    }
+}
+```
+
+## 创建自定义服务
+
+1. 创建服务类：
+
+```php
+namespace Your\Namespace;
+
+use He426100\McpServer\Annotation\Tool;
+use He426100\McpServer\Annotation\Prompt;
+use He426100\McpServer\Annotation\Resource;
+
+class CustomService 
+{
+    #[Tool(name: 'custom-tool', description: '自定义工具')]
+    public function customTool(): string 
+    {
+        return "Custom tool result";
+    }
+}
+```
+
+2. 创建命令类：
+
+```php
+namespace Your\Namespace\Command;
+
+use He426100\McpServer\Command\AbstractMcpServerCommand;
+use Your\Namespace\CustomService;
+
+class CustomServerCommand extends AbstractMcpServerCommand 
+{
+    protected string $serverName = 'custom-server';
+    protected string $serviceClass = CustomService::class;
+
+    protected function configure(): void 
+    {
+        parent::configure();
+        $this->setName('custom:server')
+            ->setDescription('运行自定义 MCP 服务器');
+    }
+}
+```
+
+3. 注册命令：
+
+在 `composer.json` 中添加：
+
+```json
+{
+    "autoload": {
+        "psr-4": {
+            "Your\\Namespace\\": "src/"
+        }
+    }
+}
+```
+
+## 注解参数说明
+
+### Tool 注解参数
+
+| 参数 | 类型 | 说明 | 必填 |
+|------|------|------|------|
+| name | string | 工具名称 | 是 |
+| description | string | 工具描述 | 是 |
+| parameters | array | 参数定义 | 否 |
+
+### Prompt 注解参数
+
+| 参数 | 类型 | 说明 | 必填 |
+|------|------|------|------|
+| name | string | 提示模板名称 | 是 |
+| description | string | 提示模板描述 | 是 |
+| arguments | array | 参数定义 | 否 |
+
+### Resource 注解参数
+
+| 参数 | 类型 | 说明 | 必填 |
+|------|------|------|------|
+| uri | string | 资源URI | 是 |
+| name | string | 资源名称 | 是 |
+| description | string | 资源描述 | 是 |
+| mimeType | string | MIME类型 | 否 |
+
+## 日志配置
+
+服务器日志默认保存在 `runtime/server_log.txt`，可通过继承 `AbstractMcpServerCommand` 修改：
+
+```php
+protected string $logFilePath = '/custom/path/to/log.txt';
+```
+
+## Docker 支持
+
+构建并运行容器：
 
 ```bash
 docker build -t php-mcp-server .
-```
-
-2. 运行容器
-
-```bash
 docker run -i --rm php-mcp-server
-```
-
-## 项目结构
-
-```
-.
-├── bin/
-│   └── console              # 命令行入口文件
-├── src/
-│   ├── Command/
-│   │   └── TestServerCommand.php    # MCP 服务器命令实现
-│   └── Service/
-│       └── LoggerService.php        # 日志服务
-├── runtime/                 # 运行时文件目录
-├── composer.json           # Composer 配置文件
-├── Dockerfile             # Docker 构建文件
-└── README.md              # 项目说明文档
-```
-
-## 功能说明
-
-### 1. Prompt 处理器
-
-提供示例提示模板，支持：
-- 列出可用的提示模板
-- 获取特定提示模板内容
-
-### 2. Tool 处理器
-
-实现了一个简单的数字加法工具，支持：
-- 列出可用工具
-- 调用工具执行操作
-
-### 3. Resource 处理器
-
-提供基础资源访问功能，支持：
-- 列出可用资源
-- 读取资源内容
-
-## 配置说明
-
-### 环境变量
-
-- `PHP_MEMORY_LIMIT`: PHP 内存限制 (默认: 1G)
-- `PHP_TIMEZONE`: 时区设置 (默认: PRC)
-
-### 日志配置
-
-日志文件位于 `runtime/server_log.txt`，可通过 `LoggerService` 配置：
-
-```php
-LoggerService::createLogger(
-    'php-mcp-server',
-    BASE_PATH . '/runtime/server_log.txt',
-    false
-);
-```
-
-## 开发
-
-### 代码规范
-
-项目使用 PHP_CodeSniffer 进行代码规范检查：
-
-```bash
-./vendor/bin/phpcs
-```
-
-### 静态分析
-
-使用 PHPStan 进行静态代码分析：
-
-```bash
-composer analyse
-```
-
-## 测试
-
-运行单元测试：
-
-```bash
-./vendor/bin/phpunit
 ```
 
 ## 许可证
@@ -148,7 +226,7 @@ composer analyse
 ## 作者
 
 [he426100](https://github.com/he426100/)  
-[logiscape](https://github.com/logiscape/mcp-sdk-php)  
+[logiscape](https://github.com/logiscape/mcp-sdk-php)
 
 ## 更新日志
 
