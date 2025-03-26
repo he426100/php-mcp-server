@@ -17,6 +17,7 @@ use He426100\McpServer\Command\TestServerCommand;
 use He426100\McpServer\Command\WeidianBarcodeServerCommand;
 use He426100\McpServer\Command\MySqlServerCommand;
 use He426100\McpServer\Command\JsonConverterCommand;
+use He426100\McpServer\Command\Base64ServerCommand;
 
 ini_set('error_log', BASE_PATH . '/runtime/php_errors.log');
 
@@ -26,5 +27,6 @@ ini_set('error_log', BASE_PATH . '/runtime/php_errors.log');
     $application->add(new WeidianBarcodeServerCommand());
     $application->add(new MySqlServerCommand());
     $application->add(new JsonConverterCommand());
+    $application->add(new Base64ServerCommand());
     $application->run();
 })();
