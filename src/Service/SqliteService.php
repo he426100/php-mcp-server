@@ -117,7 +117,7 @@ class SqliteService
         name: 'describe_table',
         description: '显示表结构',
         parameters: [
-            'table_name' => [
+            'tableName' => [
                 'type' => 'string',
                 'description' => '表名',
                 'required' => true
