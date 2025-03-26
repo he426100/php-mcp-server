@@ -13,20 +13,16 @@ date_default_timezone_set('PRC');
 require BASE_PATH . '/vendor/autoload.php';
 
 use Symfony\Component\Console\Application;
-use He426100\McpServer\Command\TestServerCommand;
-use He426100\McpServer\Command\WeidianBarcodeServerCommand;
-use He426100\McpServer\Command\MySqlServerCommand;
-use He426100\McpServer\Command\JsonConverterCommand;
-use He426100\McpServer\Command\Base64ServerCommand;
+use He426100\McpServer\Tool\CommandDiscoverer;
 
 ini_set('error_log', BASE_PATH . '/runtime/php_errors.log');
 
 (function () {
     $application = new Application('MCP SDK Examples', '1.0.0');
-    $application->add(new TestServerCommand());
-    $application->add(new WeidianBarcodeServerCommand());
-    $application->add(new MySqlServerCommand());
-    $application->add(new JsonConverterCommand());
-    $application->add(new Base64ServerCommand());
+    
+    // 使用工具类自动发现并注册命令
+    $commandsDir = BASE_PATH . '/src/Command';
+    CommandDiscoverer::discoverAndRegister($application, $commandsDir);
+    
     $application->run();
 })();
