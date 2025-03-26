@@ -345,6 +345,11 @@ class JsonConverterService
                 'description' => 'JSON字符串',
                 'required' => true
             ],
+            'sortType' => [
+                'type' => 'string',
+                'description' => '排序类型: alpha(字母排序), natural(自然排序), numeric(数值排序), length(长度排序), locale(本地化排序)',
+                'required' => false
+            ],
             'sortOrder' => [
                 'type' => 'string',
                 'description' => '排序方式: asc(升序，默认), desc(降序)',
@@ -357,7 +362,7 @@ class JsonConverterService
             ]
         ]
     )]
-    public function sortJson(string $json, string $sortOrder = 'asc', bool $recursive = true): string
+    public function sortJson(string $json, string $sortType = 'alpha', string $sortOrder = 'asc', bool $recursive = true): string
     {
         $data = json_decode($json, true);
 
@@ -365,7 +370,7 @@ class JsonConverterService
             throw new \InvalidArgumentException('无效的JSON格式: ' . json_last_error_msg());
         }
 
-        $sortedData = $this->sortArray($data, $sortOrder, $recursive);
+        $sortedData = $this->sortArray($data, $sortType, $sortOrder, $recursive);
         
         return json_encode($sortedData, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     }
@@ -500,23 +505,53 @@ class JsonConverterService
     /**
      * 递归对数组进行排序
      */
-    private function sortArray(array $array, string $sortOrder = 'asc', bool $recursive = true): array
+    private function sortArray(array $array, string $sortType = 'alpha', string $sortOrder = 'asc', bool $recursive = true): array
     {
         if ($recursive) {
             foreach ($array as &$value) {
                 if (is_array($value)) {
-                    $value = $this->sortArray($value, $sortOrder, $recursive);
+                    $value = $this->sortArray($value, $sortType, $sortOrder, $recursive);
                 }
             }
         }
-        
-        if ($sortOrder === 'desc') {
-            krsort($array);
-        } else {
-            ksort($array);
+
+        // 定义排序函数
+        $sortFunction = match($sortType) {
+            'natural' => function($a, $b) use ($sortOrder) {
+                $result = strnatcmp((string)$a, (string)$b);
+                return $sortOrder === 'desc' ? -$result : $result;
+            },
+            'numeric' => function($a, $b) use ($sortOrder) {
+                $numA = is_numeric($a) ? $a : 0;
+                $numB = is_numeric($b) ? $b : 0;
+                $result = $numA <=> $numB;
+                return $sortOrder === 'desc' ? -$result : $result;
+            },
+            'length' => function($a, $b) use ($sortOrder) {
+                $result = strlen((string)$a) <=> strlen((string)$b);
+                return $sortOrder === 'desc' ? -$result : $result;
+            },
+            'locale' => function($a, $b) use ($sortOrder) {
+                $result = strcoll((string)$a, (string)$b);
+                return $sortOrder === 'desc' ? -$result : $result;
+            },
+            default => function($a, $b) use ($sortOrder) {
+                $result = strcmp((string)$a, (string)$b);
+                return $sortOrder === 'desc' ? -$result : $result;
+            }
+        };
+
+        // 根据排序类型对键进行排序
+        $keys = array_keys($array);
+        usort($keys, $sortFunction);
+
+        // 重建数组
+        $sortedArray = [];
+        foreach ($keys as $key) {
+            $sortedArray[$key] = $array[$key];
         }
         
-        return $array;
+        return $sortedArray;
     }
 
     /**
