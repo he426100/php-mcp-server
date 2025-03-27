@@ -27,6 +27,16 @@ abstract class AbstractMcpServerCommand extends Command
             ->addOption('transport', null, InputOption::VALUE_OPTIONAL, 'Transport type', 'stdio');
     }
 
+    /**
+     * 
+     * @param ServerRunner $runner 
+     * @param mixed $service 
+     * @param InputInterface $input 
+     * @param OutputInterface $output 
+     * @return void 
+     */
+    protected function configService(mixed $service, ServerRunner $runner, InputInterface $input, OutputInterface $output) {}
+
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $transport = $input->getOption('transport');
@@ -58,6 +68,8 @@ abstract class AbstractMcpServerCommand extends Command
 
         try {
             $runner->run($server, $initOptions);
+            $this->configService($runner, $service, $input, $output);
+
             return Command::SUCCESS;
         } catch (\Throwable $e) {
             $logger->error("服务器运行失败", ['exception' => $e]);

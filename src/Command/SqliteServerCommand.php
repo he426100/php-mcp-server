@@ -33,48 +33,13 @@ class SqliteServerCommand extends AbstractMcpServerCommand
             );
     }
 
-    protected function execute(InputInterface $input, OutputInterface $output): int
+    protected function configService(mixed $service, ServerRunner $runner, InputInterface $input, OutputInterface $output)
     {
-        $transport = $input->getOption('transport');
-        if (!in_array($transport, ['stdio', 'sse'])) {
-            throw new \Exception('Unsupported transport: ' . $transport);
-        }
-
-        $port = $input->getOption('port');
         $dbPath = $input->getOption('db-path');
-
-        // 创建日志记录器
-        $logger = LoggerService::createLogger(
-            $this->serverName,
-            $this->logFilePath,
-            false
-        );
-
-        // 创建服务器实例
-        $server = new Server($this->serverName);
-
-        // 配置服务
-        /** @var SqliteService */
-        $service = new $this->serviceClass();
-        $registrar = new McpHandlerRegistrar();
-        $registrar->registerHandler($server, $service);
-
+        /** @var SqliteService $service */
         $service->setConfig($dbPath);
 
-        // 创建初始化选项并运行服务器
-        $initOptions = $server->createInitializationOptions();
-        $runner = new ServerRunner($logger, $transport, '0.0.0.0', $port);
-
-        try {
-            $runner->run($server, $initOptions);
-            
-            $session = $runner->getSession();
-            $service->setSession($session);
-            
-            return Command::SUCCESS;
-        } catch (\Throwable $e) {
-            $logger->error("服务器运行失败", ['exception' => $e]);
-            return Command::FAILURE;
-        }
+        $session = $runner->getSession();
+        $service->setSession($session);
     }
 }
