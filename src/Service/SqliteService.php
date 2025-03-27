@@ -150,6 +150,14 @@ TEMPLATE;
             throw new \InvalidArgumentException("只允许 SELECT 查询");
         }
 
+        // 限制查询以防止大型结果集
+        if (strpos(strtoupper($query), 'LIMIT') === false) {
+            $query .= ' LIMIT 100';
+            $limitAdded = true;
+        } else {
+            $limitAdded = false;
+        }
+        
         try {
             $stmt = $this->pdo->query($query);
             $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -158,7 +166,13 @@ TEMPLATE;
                 return "查询执行成功，但没有返回结果。";
             }
 
-            return $this->formatResults($results);
+            // 构建表格标题
+            $resultText = "查询结果";
+            if ($limitAdded) {
+                $resultText .= " (已自动添加LIMIT 100)";
+            }
+            $resultText .= ":\n\n";
+            return $resultText . $this->formatResults($results);
         } catch (PDOException $e) {
             throw new RuntimeException("查询执行失败: " . $e->getMessage());
         }
