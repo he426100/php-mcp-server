@@ -67,6 +67,10 @@ class SqliteServerCommand extends AbstractMcpServerCommand
 
         try {
             $runner->run($server, $initOptions);
+            
+            $session = $runner->getSession();
+            $service->setSession($session);
+            
             return Command::SUCCESS;
         } catch (\Throwable $e) {
             $logger->error("服务器运行失败", ['exception' => $e]);
