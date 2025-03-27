@@ -6,6 +6,10 @@ use Mcp\Annotation\Tool;
 use Mcp\Annotation\Resource;
 use Mcp\Annotation\Prompt;
 use Mcp\Server\ServerSession;
+use Mcp\Types\GetPromptResult;
+use Mcp\Types\PromptMessage;
+use Mcp\Types\TextContent;
+use Mcp\Types\Role;
 use PDO;
 use PDOException;
 use InvalidArgumentException;
@@ -294,9 +298,20 @@ TEMPLATE;
             'topic' => ['description' => '用于初始化数据库的主题', 'required' => true]
         ]
     )]
-    public function getMcpDemoPrompt(string $topic): string
+    public function getMcpDemoPrompt(string $topic): GetPromptResult
     {
-        return str_replace('{topic}', $topic, self::DEMO_PROMPT_TEMPLATE);
+        $promptText = str_replace('{topic}', $topic, self::DEMO_PROMPT_TEMPLATE);
+        $textContent = new TextContent(text: $promptText);
+        
+        $message = new PromptMessage(
+            role: Role::USER,
+            content: $textContent
+        );
+        
+        return new GetPromptResult(
+            description: "Demo template for {$topic}",
+            messages: [$message]
+        );
     }
 
     #[Resource(
