@@ -68,7 +68,7 @@ abstract class AbstractMcpServerCommand extends Command
 
         try {
             $runner->run($server, $initOptions);
-            $this->configService($runner, $service, $input, $output);
+            $this->configService($service, $runner, $input, $output);
 
             return Command::SUCCESS;
         } catch (\Throwable $e) {
