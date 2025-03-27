@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace He426100\McpServer\Tool;
 
 use Symfony\Component\Console\Application;
@@ -16,7 +18,7 @@ class CommandDiscoverer
      * @param Application $application Symfony Console应用程序实例
      * @param string $commandsDir 命令目录路径
      * @param string $namespace 命令类的命名空间
-     * @return int 成功注册的命令数量
+     * @return void 成功注册的命令数量
      */
     public static function discoverAndRegister(
         Application $application,

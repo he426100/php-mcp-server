@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace He426100\McpServer\Service;
 
 use Monolog\Logger;

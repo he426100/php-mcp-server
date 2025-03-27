@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace He426100\McpServer\Command;
 
 use Symfony\Component\Console\Command\Command;
