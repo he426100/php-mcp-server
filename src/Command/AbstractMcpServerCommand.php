@@ -40,6 +40,13 @@ abstract class AbstractMcpServerCommand extends Command
      */
     protected function configService(mixed $service, ServerRunner $runner, InputInterface $input, OutputInterface $output) {}
 
+    /**
+     * 
+     * @param mixed $service
+     * @param ServerRunner $runner
+     */
+    protected function afterServerRun($service, ServerRunner $runner): void {}
+
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $transport = $input->getOption('transport');
@@ -63,11 +70,11 @@ abstract class AbstractMcpServerCommand extends Command
         $className = $this->serviceClass;
         /** @var BaseService $service */
         $service = new $className($logger);
-        
+
         // 创建运行器并配置服务
         $runner = new ServerRunner($logger, $transport, '0.0.0.0', $port);
         $this->configService($service, $runner, $input, $output);  // 先配置服务
-        
+
         $registrar = new McpHandlerRegistrar();
         $registrar->registerHandler($server, $service);
 
@@ -75,7 +82,8 @@ abstract class AbstractMcpServerCommand extends Command
         $initOptions = $server->createInitializationOptions();
 
         try {
-            $runner->run($server, $initOptions);  // 后运行服务器
+            $runner->run($server, $initOptions);
+            $this->afterServerRun($service, $runner);
             return Command::SUCCESS;
         } catch (\Throwable $e) {
             $logger->error("服务器运行失败", ['exception' => $e]);
