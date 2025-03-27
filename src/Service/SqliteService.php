@@ -372,7 +372,7 @@ TEMPLATE;
         }
 
         // 检查注释
-        if (preg_match('/--|\/*|#/i', $query)) {
+        if (preg_match('/--|#/i', $query)) {
             throw new InvalidArgumentException("查询中不允许包含注释");
         }
     }
