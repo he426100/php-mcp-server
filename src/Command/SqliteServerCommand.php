@@ -27,13 +27,12 @@ class SqliteServerCommand extends AbstractMcpServerCommand
                 null,
                 InputOption::VALUE_REQUIRED,
                 'SQLite 数据库文件路径',
-                BASE_PATH . '/runtime/sqlite.db'
             );
     }
 
     protected function configService(mixed $service, ServerRunner $runner, InputInterface $input, OutputInterface $output)
     {
-        $dbPath = $input->getOption('db-path');
+        $dbPath = getenv('DB_PATH') ?: $input->getOption('db-path') ?: BASE_PATH . '/runtime/sqlite.db';
         /** @var SqliteService $service */
         $service->setConfig($dbPath);
     }
