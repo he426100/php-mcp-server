@@ -7,7 +7,7 @@ namespace He426100\McpServer\Service;
 use Mcp\Annotation\Tool;
 use Mcp\Types\ImageContent;
 
-class Base64Service
+class Base64Service extends BaseService
 {
     /**
      * Base64编码

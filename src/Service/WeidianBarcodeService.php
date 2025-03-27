@@ -6,7 +6,7 @@ namespace He426100\McpServer\Service;
 
 use Mcp\Annotation\Tool;
 
-class WeidianBarcodeService
+class WeidianBarcodeService extends BaseService
 {
     /**
      * 查询条码信息

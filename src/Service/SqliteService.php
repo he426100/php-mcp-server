@@ -17,7 +17,7 @@ use PDOException;
 use InvalidArgumentException;
 use RuntimeException;
 
-class SqliteService
+class SqliteService extends BaseService
 {
     private PDO $pdo;
     private array $insights = [];

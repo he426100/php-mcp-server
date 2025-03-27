@@ -6,7 +6,7 @@ namespace He426100\McpServer\Service;
 
 use Mcp\Annotation\Tool;
 
-class JsonConverterService
+class JsonConverterService extends BaseService
 {
     /**
      * 将JSON转换为查询字符串

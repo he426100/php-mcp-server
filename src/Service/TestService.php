@@ -8,7 +8,7 @@ use Mcp\Annotation\Tool;
 use Mcp\Annotation\Prompt;
 use Mcp\Annotation\Resource;
 
-class TestService
+class TestService extends BaseService
 {
     #[Tool(name: 'sum', description: '计算两个数的和')]
     public function sum(int $num1, int $num2 = 0): int

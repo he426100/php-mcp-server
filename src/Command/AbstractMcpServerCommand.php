@@ -8,6 +8,7 @@ use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Input\InputOption;
+use He426100\McpServer\Service\BaseService;
 use He426100\McpServer\Service\LoggerService;
 use Mcp\Tool\McpHandlerRegistrar;
 use Mcp\Server\Server;
@@ -60,7 +61,8 @@ abstract class AbstractMcpServerCommand extends Command
 
         // 配置服务
         $className = $this->serviceClass;
-        $service = new $className();
+        /** @var BaseService $service */
+        $service = new $className($logger);
         $registrar = new McpHandlerRegistrar();
         $registrar->registerHandler($server, $service);
 

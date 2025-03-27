@@ -7,7 +7,7 @@ namespace He426100\McpServer\Service;
 use Mcp\Annotation\Tool;
 use PDO;
 
-class MySqlService
+class MySqlService extends BaseService
 {
     private string $host;
     private string $username;

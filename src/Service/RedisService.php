@@ -7,7 +7,7 @@ namespace He426100\McpServer\Service;
 use Mcp\Annotation\Tool;
 use Redis;
 
-class RedisService
+class RedisService extends BaseService
 {
     private Redis $redis;
     private string $host;
