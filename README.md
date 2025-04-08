@@ -30,11 +30,8 @@ cd php-mcp-server
 # 2. 安装依赖
 composer install
 
-# 3. 安装 Swow 扩展
+# 3. 安装 Swow 扩展（如果没有）
 ./vendor/bin/swow-builder --install
-
-# 如果需要重新编译 Swow:
-# ./vendor/bin/swow-builder --rebuild --install
 ```
 
 > 关于 Swow 扩展的详细安装说明,请参考 [Swow 官方文档](https://github.com/swow/swow)
@@ -195,6 +192,45 @@ class CustomServerCommand extends AbstractMcpServerCommand
 | name | string | 资源名称 | 是 |
 | description | string | 资源描述 | 是 |
 | mimeType | string | MIME类型 | 否 |
+
+## 注解函数返回类型说明
+
+### Tool 注解函数支持的返回类型
+
+| 返回类型 | 说明 | 转换结果 |
+|---------|------|---------|
+| TextContent/ImageContent/EmbeddedResource | 直接返回内容对象 | 原样保留 |
+| TextContent/ImageContent/EmbeddedResource 数组 | 内容对象数组 | 原样保留 |
+| ResourceContents | 资源内容对象 | 转换为 EmbeddedResource |
+| 字符串或标量类型 | 如 string、int、float、bool | 转换为 TextContent |
+| null | 空值 | 转换为空字符串的 TextContent |
+| 数组或对象 | 复杂数据结构 | 转换为 JSON 格式的 TextContent |
+
+### Prompt 注解函数支持的返回类型
+
+| 返回类型 | 说明 | 转换结果 |
+|---------|------|---------|
+| PromptMessage | 消息对象 | 原样保留 |
+| PromptMessage 数组 | 消息对象数组 | 原样保留 |
+| Content 对象 | TextContent/ImageContent 等 | 转换为用户角色的 PromptMessage |
+| 字符串或标量类型 | 如 string、int、float、bool | 转换为带 TextContent 的用户消息 |
+| null | 空值 | 转换为空内容的用户消息 |
+| 数组或对象 | 复杂数据结构 | 转换为 JSON 格式的用户消息 |
+
+### Resource 注解函数支持的返回类型
+
+| 返回类型 | 说明 | 转换结果 |
+|---------|------|---------|
+| TextResourceContents/BlobResourceContents | 资源内容对象 | 原样保留 |
+| ResourceContents 数组 | 资源内容对象数组 | 原样保留 |
+| 字符串或可转字符串对象 | 文本内容 | 根据 MIME 类型转换为对应资源内容 |
+| null | 空值 | 转换为空的 TextResourceContents |
+| 数组或对象 | 复杂数据结构 | 转换为 JSON 格式的资源内容 |
+
+注意事项：
+- 对于超过 2MB 的大文件内容会自动截断
+- 文本类型 (text/*) 的 MIME 类型会使用 TextResourceContents
+- 其他 MIME 类型会使用 BlobResourceContents
 
 ## 日志配置
 
