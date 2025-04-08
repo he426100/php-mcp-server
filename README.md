@@ -1,5 +1,7 @@
 # PHP MCP Server
 
+[English Version](README.en.md)
+
 这是一个基于 PHP 实现的 MCP (Model Control Protocol) 服务器框架，支持通过注解优雅地定义 MCP 服务。
 
 ## 项目概述
