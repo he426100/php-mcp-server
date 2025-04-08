@@ -16,16 +16,28 @@
 - PHP >= 8.1
 - Composer
 - Docker (可选)
+- Swow 扩展 >= 1.5
 
 ## 快速开始
 
 ### 安装
 
 ```bash
+# 1. 克隆项目
 git clone https://github.com/he426100/php-mcp-server
 cd php-mcp-server
+
+# 2. 安装依赖
 composer install
+
+# 3. 安装 Swow 扩展
+./vendor/bin/swow-builder --install
+
+# 如果需要重新编译 Swow:
+# ./vendor/bin/swow-builder --rebuild --install
 ```
+
+> 关于 Swow 扩展的详细安装说明,请参考 [Swow 官方文档](https://github.com/swow/swow)
 
 ### 运行示例服务器
 
@@ -153,20 +165,6 @@ class CustomServerCommand extends AbstractMcpServerCommand
         parent::configure();
         $this->setName('custom:server')
             ->setDescription('运行自定义 MCP 服务器');
-    }
-}
-```
-
-3. 注册命令：
-
-在 `composer.json` 中添加：
-
-```json
-{
-    "autoload": {
-        "psr-4": {
-            "Your\\Namespace\\": "src/"
-        }
     }
 }
 ```
