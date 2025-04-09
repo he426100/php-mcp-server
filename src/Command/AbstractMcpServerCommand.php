@@ -81,13 +81,25 @@ abstract class AbstractMcpServerCommand extends Command
         // 创建初始化选项并运行服务器
         $initOptions = $server->createInitializationOptions();
 
-        try {
-            $runner->run($server, $initOptions);
-            $this->afterServerRun($service, $runner);
-            return Command::SUCCESS;
-        } catch (\Throwable $e) {
-            $logger->error("服务器运行失败", ['exception' => $e]);
-            return Command::FAILURE;
+        if (extension_loaded('swoole')) {
+            $result = \Swoole\Coroutine\run(function () use ($runner, $server, $initOptions, $service, $logger) {
+                try {
+                    $runner->run($server, $initOptions);
+                    $this->afterServerRun($service, $runner);
+                } catch (\Throwable $e) {
+                    $logger->error("服务器运行失败", ['exception' => $e]);
+                }
+            });
+            return $result ? Command::SUCCESS : Command::FAILURE;
+        } else {
+            try {
+                $runner->run($server, $initOptions);
+                $this->afterServerRun($service, $runner);
+                return Command::SUCCESS;
+            } catch (\Throwable $e) {
+                $logger->error("服务器运行失败", ['exception' => $e]);
+                return Command::FAILURE;
+            }
         }
     }
 }
