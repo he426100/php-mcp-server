@@ -17,8 +17,8 @@ This project provides a complete MCP server implementation with the following fe
 
 - PHP >= 8.1
 - Composer
+- Swow extension > 1.5 or Swoole > 5.1
 - Docker (optional)
-- Swow extension >= 1.5
 
 ## Quick Start
 
@@ -32,7 +32,7 @@ cd php-mcp-server
 # 2. Install dependencies
 composer install
 
-# 3. Install Swow extension (if not installed)
+# 3. optional, Install Swow extension (if not installed)
 ./vendor/bin/swow-builder --install
 ```
 

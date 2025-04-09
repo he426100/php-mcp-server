@@ -17,8 +17,8 @@
 
 - PHP >= 8.1
 - Composer
+- Swow 扩展 > 1.5 或 Swoole > 5.1
 - Docker (可选)
-- Swow 扩展 >= 1.5
 
 ## 快速开始
 
@@ -32,7 +32,7 @@ cd php-mcp-server
 # 2. 安装依赖
 composer install
 
-# 3. 安装 Swow 扩展（如果没有）
+# 3. 可选，安装 Swow 扩展（如果没有）
 ./vendor/bin/swow-builder --install
 ```
 

@@ -3,8 +3,7 @@
     "type": "project",
     "require": {
         "he426100/mcp-sdk-php": "dev-swow",
-        "chrome-php/chrome": "^1.13",
-        "swow/swow": "^1.5"
+        "chrome-php/chrome": "^1.13"
     },
     "autoload": {
         "psr-4": {
