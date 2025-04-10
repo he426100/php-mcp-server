@@ -2,7 +2,7 @@
     "name": "he426100/php-mcp-server",
     "type": "project",
     "require": {
-        "he426100/mcp-sdk-php": "dev-swow",
+        "he426100/mcp-sdk-php": "^1.1",
         "chrome-php/chrome": "^1.13"
     },
     "autoload": {
