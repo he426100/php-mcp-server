@@ -6,12 +6,14 @@ This is a PHP-based MCP (Model Control Protocol) server framework that supports 
 
 ## Project Overview
 
-This project provides a complete MCP server implementation with the following features:
+This project provides a complete MCP server implementation with the following features:  
 
-- Annotation-based MCP service definition
-- Support for Tool, Prompt, and Resource handlers
-- Complete logging system
-- Docker support
+- Annotation-based MCP service definition  
+- Support for Tool, Prompt, and Resource handlers  
+- Support Stdio、Sse transport  
+- Support [Swow](https://github.com/swow/swow) or [Swoole](https://github.com/swoole/swoole-src)
+- Complete logging system  
+- Docker support  
 
 ## System Requirements
 
@@ -43,6 +45,14 @@ composer install
 ```bash
 php bin/console mcp:test-server
 ```
+
+#### Server Command Parameters
+
+| Parameter | Description | Default Value | Options |
+|-----------|-------------|---------------|---------|
+| --transport | Transport type | stdio | stdio, sse |
+| --port | Port to listen on for SSE | 8000 |  |
+
 
 ## Annotation Usage Guide
 
@@ -263,10 +273,3 @@ Issues and Pull Requests are welcome.
 
 [he426100](https://github.com/he426100/)  
 [logiscape](https://github.com/logiscape/mcp-sdk-php)
-
-## Changelog
-
-### v1.0.0
-- Initial release
-- Implemented basic MCP server functionality
-- Added Docker support 

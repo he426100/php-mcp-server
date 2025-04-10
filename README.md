@@ -6,12 +6,14 @@
 
 ## 项目概述
 
-本项目提供了一个完整的 MCP 服务器实现，特色功能：
+本项目提供了一个完整的 MCP 服务器实现，特色功能： 
 
-- 基于注解的 MCP 服务定义
-- 支持 Tool、Prompt、Resource 三种处理器
-- 完整的日志系统
-- Docker 支持
+- 基于注解的 MCP 服务定义  
+- 支持 Tool、Prompt、Resource 三种处理器  
+- 支持 Stdio、Sse 两种传输方式  
+- 支持 [Swow](https://github.com/swow/swow) 和 [Swoole](https://github.com/swoole/swoole-src) 两种环境  
+- 完整的日志系统  
+- Docker 支持  
 
 ## 系统要求
 
@@ -43,6 +45,14 @@ composer install
 ```bash
 php bin/console mcp:test-server
 ```
+
+#### 通用命令参数
+
+| Parameter | Description | Default Value | Options |
+|-----------|-------------|---------------|---------|
+| --transport | Transport type | stdio | stdio, sse |
+| --port | Port to listen on for SSE | 8000 |  |
+
 
 ## 注解使用指南
 
@@ -263,10 +273,3 @@ docker run -i --rm php-mcp-server
 
 [he426100](https://github.com/he426100/)  
 [logiscape](https://github.com/logiscape/mcp-sdk-php)
-
-## 更新日志
-
-### v1.0.0
-- 初始版本发布
-- 实现基础 MCP 服务器功能
-- 添加 Docker 支持
