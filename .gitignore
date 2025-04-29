@@ -5,3 +5,4 @@ composer.lock
 runtime/
 .env
 .cursor/
+.idea/

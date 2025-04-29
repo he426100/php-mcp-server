@@ -258,8 +258,10 @@ protected string $logFilePath = '/custom/path/to/log.txt';
 
 ```bash
 docker build -t php-mcp-server .
-docker run -i --rm php-mcp-server
+docker run --name=php-mcp-server -p 8000:8000 -itd php-mcp-server mcp:test-server --transport sse
 ```
+
+sse地址：http://127.0.0.1:8000/sse
 
 ## 许可证
 

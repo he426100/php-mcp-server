@@ -10,7 +10,18 @@ use Mcp\Annotation\Resource;
 
 class TestService extends BaseService
 {
-    #[Tool(name: 'sum', description: '计算两个数的和')]
+    #[Tool(name: 'sum', description: '计算两个数的和', parameters: [
+        'num1' => [
+            'type' => 'number',
+            'description' => '第一个数字',
+            'required' => true
+        ],
+        'num2' => [
+            'type' => 'number',
+            'description' => '第二个数字',
+            'required' => true
+        ]
+    ])]
     public function sum(int $num1, int $num2 = 0): int
     {
         return $num1 + $num2;
