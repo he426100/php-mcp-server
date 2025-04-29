@@ -13,6 +13,7 @@ RUN apt-get update && apt-get install -y \
     libcurl4-openssl-dev \
     && docker-php-ext-install \
     zip \
+    sockets \
     # 下载并安装 swow 扩展
     && cd /tmp \
     && curl -SL "https://github.com/swow/swow/archive/${SW_VERSION}.tar.gz" -o swow.tar.gz \
