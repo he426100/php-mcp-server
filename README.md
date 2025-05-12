@@ -263,6 +263,38 @@ docker run --name=php-mcp-server -p 8000:8000 -itd php-mcp-server mcp:test-serve
 
 sse地址：http://127.0.0.1:8000/sse
 
+## 通过 CPX 使用
+
+您可以通过 [CPX (Composer Package Executor)](https://github.com/imliam/cpx) 直接运行本项目，无需事先安装：
+
+### 前提条件
+
+1. 全局安装 CPX：
+```bash
+composer global require cpx/cpx
+```
+
+2. 确保 Composer 的全局 bin 目录在您的 PATH 中
+
+### 使用方式
+
+```bash
+# 运行测试服务器
+cpx he426100/php-mcp-server mcp:test-server
+
+# 使用 SSE 传输模式
+cpx he426100/php-mcp-server mcp:test-server --transport=sse
+
+# 查看可用命令
+cpx he426100/php-mcp-server list
+```
+
+### 优点
+
+- 无需克隆仓库或手动安装项目
+- 自动获取最新的稳定版本
+- 不会与您的其他项目或全局依赖冲突
+
 ## 许可证
 
 [MIT License](LICENSE)

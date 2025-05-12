@@ -10,12 +10,34 @@ error_reporting(E_ALL);
 date_default_timezone_set('PRC');
 
 ! defined('BASE_PATH') && define('BASE_PATH', dirname(__DIR__));
-require BASE_PATH . '/vendor/autoload.php';
+
+// 尝试加载 Composer 自动加载器 (支持 CPX 环境)
+$possibleAutoloaderPaths = [
+    BASE_PATH . '/vendor/autoload.php',                 // 本地安装
+    __DIR__ . '/../../../autoload.php',                 // 全局安装
+];
+
+foreach ($possibleAutoloaderPaths as $autoloader) {
+    if (file_exists($autoloader)) {
+        require $autoloader;
+        break;
+    }
+}
+
+// 确保找到了自动加载器
+if (!class_exists('Composer\Autoload\ClassLoader')) {
+    die('无法找到 Composer 自动加载器。请运行 "composer install"。' . PHP_EOL);
+}
 
 use Symfony\Component\Console\Application;
 use He426100\McpServer\Tool\CommandDiscoverer;
 
-ini_set('error_log', BASE_PATH . '/runtime/php_errors.log');
+// 设置日志目录，检查并创建 runtime 目录
+$runtimeDir = BASE_PATH . '/runtime';
+if (!is_dir($runtimeDir)) {
+    mkdir($runtimeDir, 0777, true);
+}
+ini_set('error_log', $runtimeDir . '/php_errors.log');
 
 (function () {
     $application = new Application('MCP SDK Examples', '1.0.0');

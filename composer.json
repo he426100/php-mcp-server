@@ -17,5 +17,6 @@
     },
     "scripts": {
         "analyse": "phpstan analyse --memory-limit 500M -l 5 -c phpstan.neon.dist ./src"
-    }
+    },
+    "bin": ["bin/console"]
 }
