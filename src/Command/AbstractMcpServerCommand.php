@@ -54,7 +54,7 @@ abstract class AbstractMcpServerCommand extends Command
             throw new \Exception('Unsupported transport: ' . $transport);
         }
 
-        $port = $input->getOption('port');
+        $port = (int)$input->getOption('port');
 
         // 创建日志记录器
         $logger = LoggerService::createLogger(
