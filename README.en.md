@@ -261,6 +261,32 @@ docker build -t php-mcp-server .
 docker run -i --rm php-mcp-server
 ```
 
+## Using with CPX
+
+You can run this project directly using [CPX (Composer Package Executor)](https://github.com/imliam/cpx) without having to install it first:
+
+### Prerequisites
+
+1. Install CPX globally:
+```bash
+composer global require cpx/cpx
+```
+
+2. Ensure Composer's global bin directory is in your PATH
+
+### Usage
+
+```bash
+# Run the test server
+cpx he426100/php-mcp-server mcp:test-server
+
+# Use SSE transport mode
+cpx he426100/php-mcp-server mcp:test-server --transport=sse
+
+# View available commands
+cpx he426100/php-mcp-server list
+```
+
 ## License
 
 [MIT License](LICENSE)
