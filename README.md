@@ -280,13 +280,13 @@ composer global require cpx/cpx
 
 ```bash
 # 运行测试服务器
-cpx he426100/php-mcp-server:dev-cpx mcp:test-server
+cpx he426100/php-mcp-server mcp:test-server
 
 # 使用 SSE 传输模式
-cpx he426100/php-mcp-server:dev-cpx mcp:test-server --transport=sse
+cpx he426100/php-mcp-server mcp:test-server --transport=sse
 
 # 查看可用命令
-cpx he426100/php-mcp-server:dev-cpx list
+cpx he426100/php-mcp-server list
 ```
 
 ## 许可证
